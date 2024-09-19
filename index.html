@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        nav {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+        }
+        nav button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        nav button:hover {
+            background-color: #45a049;
+        }
+        section {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Library Management System</h1>
+    <nav>
+        <button onclick="fetchBooks()">Get Books</button>
+        <button onclick="fetchUsers()">Get Users</button>
+        <button onclick="fetchLentBooks()">Get Lent Books by User</button>
+    </nav>
+    
+    <section>
+        <div id="table-container"></div>
+    </section>
+
+    <script>
+        // Set your API base URL here (Replace with your actual Function App URL)
+        const apiUrl = "http://localhost:7201/api";
+
+        // Function to fetch and display books
+        function fetchBooks() {
+            fetch(`${apiUrl}/GetBooks`)
+                .then(response => response.json())
+                .then(data => {
+                    displayTable(data, ['BookId', 'Title', 'Author'], "Books");
+                })
+                .catch(error => {
+                    console.error("Error fetching books:", error);
+                });
+        }
+
+        // Function to fetch and display users
+        function fetchUsers() {
+            fetch(`${apiUrl}/GetUsers`)
+                .then(response => response.json())
+                .then(data => {
+                    displayTable(data, ['UserId', 'Name', 'Email'], "Users");
+                })
+                .catch(error => {
+                    console.error("Error fetching users:", error);
+                });
+        }
+
+        // Function to fetch and display lent books by a specific user (hardcoded userId 1 for this example)
+        function fetchLentBooks() {
+            const userId = 1; // You can dynamically get this from user input
+            fetch(`${apiUrl}/GetLentBookByUser/${userId}`)
+                .then(response => {
+                    if (response.status === 204) {
+                        return Promise.resolve([]); // If no data, return empty array
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.length === 0) {
+                        document.getElementById('table-container').innerHTML = `<p>No lent books found for the user.</p>`;
+                    } else {
+                        displayTable(data, ['Title', 'Author', 'LentDate'], "Lent Books");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching lent books:", error);
+                });
+        }
+
+        // Function to display data in a table format
+        function displayTable(data, columns, tableName) {
+            let tableHTML = `<h2>${tableName}</h2>`;
+            if (data.length === 0) {
+                tableHTML += `<p>No data found.</p>`;
+            } else {
+                tableHTML += `<table><thead><tr>`;
+                columns.forEach(col => {
+                    tableHTML += `<th>${col}</th>`;
+                });
+                tableHTML += `</tr></thead><tbody>`;
+                data.forEach(item => {
+                    tableHTML += `<tr>`;
+                    columns.forEach(col => {
+                        tableHTML += `<td>${item[col]}</td>`;
+                    });
+                    tableHTML += `</tr>`;
+                });
+                tableHTML += `</tbody></table>`;
+            }
+            document.getElementById('table-container').innerHTML = tableHTML;
+        }
+    </script>
+</body>
+</html>
